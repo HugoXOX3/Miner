@@ -1,13 +1,12 @@
 import socket
 import hashlib
 import json
-import time
 
 # Configure pool connection details
-pool_host = "pool.example.com"
-pool_port = 3333
-username = "your_username"
-password = "your_password"
+pool_host = "public-pool.io"
+pool_port = 21496
+username = "bc1qwp44lvxgrhh42de507kezjspcyh8cvw6tvuykp"
+password = "x"
 
 # Create a TCP socket and connect to the pool
 conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -22,11 +21,15 @@ while True:
 
         # Receive subscription response
         subscribe_response = ""
-        while "\n" not in subscribe_response:
-            subscribe_response += conn.recv(4096).decode()
-        print("Subscribe Response:", subscribe_response)
+        while not subscribe_response.endswith("\n"):
+            data = conn.recv(4096).decode()
+            if not data:
+                break
+            subscribe_response += data
 
-        subscribe_data = json.loads(subscribe_response)
+        # Parse valid JSON response from the received data
+        valid_subscribe_response = subscribe_response[:subscribe_response.index("\n") + 1]
+        subscribe_data = json.loads(valid_subscribe_response)
 
         # Extract subscription details
         subscription_id = subscribe_data["result"][0]
@@ -37,11 +40,15 @@ while True:
 
         # Receive authorization response
         authorize_response = ""
-        while "\n" not in authorize_response:
-            authorize_response += conn.recv(4096).decode()
-        print("Authorize Response:", authorize_response)
+        while not authorize_response.endswith("\n"):
+            data = conn.recv(4096).decode()
+            if not data:
+                break
+            authorize_response += data
 
-        authorize_data = json.loads(authorize_response)
+        # Parse valid JSON response from the received data
+        valid_authorize_response = authorize_response[:authorize_response.index("\n") + 1]
+        authorize_data = json.loads(valid_authorize_response)
 
         if "result" in authorize_data and authorize_data["result"]:
             # Fetch mining job
@@ -50,11 +57,15 @@ while True:
 
             # Receive mining job response
             getwork_response = ""
-            while "\n" not in getwork_response:
-                getwork_response += conn.recv(4096).decode()
-            print("GetWork Response:", getwork_response)
+            while not getwork_response.endswith("\n"):
+                data = conn.recv(4096).decode()
+                if not data:
+                    break
+                getwork_response += data
 
-            getwork_data = json.loads(getwork_response)
+            # Parse valid JSON response from the received data
+            valid_getwork_response = getwork_response[:getwork_response.index("\n") + 1]
+            getwork_data = json.loads(valid_getwork_response)
 
             if "result" in getwork_data and getwork_data["result"] is not None:
                 # Extract job details
@@ -79,6 +90,3 @@ while True:
 
     except Exception as e:
         print("Error:", e)
-
-    # Sleep for a short duration before requesting a new mining job
-    time.sleep(2)
