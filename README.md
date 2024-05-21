@@ -1,2 +1,2 @@
 # Miner
-A Normal Python Miner
+A Normal Python Miner(Still Developing)
